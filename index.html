@@ -1021,6 +1021,9 @@
         context.fillStyle = "#101612";
         context.font = "bold 17px system-ui";
         context.fillText(worldMoney(block.reward), block.x, block.y + radius + 22);
+        context.fillStyle = "#ffffff";
+        context.font = "12px system-ui";
+        context.fillText(`ID ${block.id}`, block.x, block.y + radius + 38);
       }
       for (const player of worldPlayers) {
         const isSelf = player.id === cloudSession?.user?.id;
