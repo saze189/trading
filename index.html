@@ -165,6 +165,21 @@
     .site-panel .account-heading { position: sticky; top: -24px; z-index: 2; margin: -24px -24px 18px; padding: 20px 24px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
     .site-panel-close { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; color: var(--muted); background: transparent; font-size: 12px; }
     .site-panel-close:hover { color: var(--text); background: var(--panel-2); }
+    .learning-panel { width: min(500px, 100vw); }
+    .learning-intro { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .guide-section { margin: 0 0 9px; border: 1px solid var(--line); border-radius: 10px; background: #111914; }
+    .guide-section summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; color: var(--text); font-size: 13px; font-weight: 650; cursor: pointer; list-style: none; }
+    .guide-section summary::-webkit-details-marker { display: none; }
+    .guide-section summary::after { content: "+"; color: var(--green); font-size: 18px; line-height: 1; }
+    .guide-section[open] summary::after { content: "−"; }
+    .guide-section summary:hover { color: var(--green); }
+    .guide-content { padding: 0 14px 14px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+    .guide-content p { margin: 0 0 10px; }
+    .guide-content p:last-child { margin-bottom: 0; }
+    .guide-content strong { color: var(--text); }
+    .guide-candle-list { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; margin: 0; }
+    .guide-candle-list dt { color: var(--green); font-weight: 650; }
+    .guide-candle-list dd { margin: 0; }
     .account-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
     .account-copy { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0 0 13px; }
     .account-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -296,7 +311,7 @@
   <header>
     <div class="shell nav">
       <a class="brand" href="./index.html" target="_top"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16.5 9 11l3.5 3.5L20 6.5M15 6.5h5v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>papertrade</a>
-      <div class="nav-right"><span class="market-status" id="marketStatus"><span class="dot"></span>Loading market data…</span><span class="demo-label" data-i18n="demo">PAPER TRADING</span><a class="world-page-link" id="worldPageLink" href="./world.html" target="_top" data-i18n="worldNav">World</a><button class="site-panel-toggle" id="sitePanelToggle" type="button" aria-expanded="false" aria-controls="accountCard" data-i18n="menu">Players &amp; Account</button></div>
+      <div class="nav-right"><span class="market-status" id="marketStatus"><span class="dot"></span>Loading market data…</span><span class="demo-label" data-i18n="demo">PAPER TRADING</span><a class="world-page-link" id="worldPageLink" href="./world.html" target="_top" data-i18n="worldNav">World</a><button class="site-panel-toggle" id="sitePanelToggle" type="button" aria-expanded="false" aria-controls="accountCard" data-i18n="menu">Players &amp; Account</button><button class="site-panel-toggle" id="learningPanelToggle" type="button" aria-expanded="false" aria-controls="learningPanel" data-i18n="guideNav">Guide</button></div>
     </div>
   </header>
   <main class="shell">
@@ -393,6 +408,40 @@
         </div>
       </section>
     </section>
+    <aside class="card site-panel learning-panel" id="learningPanel" role="dialog" aria-modal="true" hidden aria-labelledby="learningHeading">
+      <div class="account-heading"><h2 id="learningHeading" data-i18n="guideHeading">Trading guide</h2><button class="site-panel-close" id="learningPanelClose" type="button" data-i18n="close">Close</button></div>
+      <p class="learning-intro" data-i18n="guideIntro">Learn how to read the chart and practice safely. Open a section to see its explanation.</p>
+      <details class="guide-section">
+        <summary data-i18n="guideCandlesTitle">Candlesticks: the basics</summary>
+        <div class="guide-content">
+          <p data-i18n="guideCandlesIntro">Each candle summarizes how the price moved during one time interval.</p>
+          <dl class="guide-candle-list">
+            <dt data-i18n="guideOpenLabel">Open</dt><dd data-i18n="guideOpenText">The first price in that interval.</dd>
+            <dt data-i18n="guideCloseLabel">Close</dt><dd data-i18n="guideCloseText">The last price in that interval.</dd>
+            <dt data-i18n="guideHighLabel">High</dt><dd data-i18n="guideHighText">The highest price reached.</dd>
+            <dt data-i18n="guideLowLabel">Low</dt><dd data-i18n="guideLowText">The lowest price reached.</dd>
+          </dl>
+        </div>
+      </details>
+      <details class="guide-section">
+        <summary data-i18n="guideColorsTitle">Candle body, wicks and colors</summary>
+        <div class="guide-content">
+          <p data-i18n="guideColorsText">The thick body runs from open to close. Thin lines above and below are wicks showing the high and low. Green means the interval closed at or above its open; red means it closed below its open.</p>
+        </div>
+      </details>
+      <details class="guide-section">
+        <summary data-i18n="guideIntervalsTitle">Chart time intervals</summary>
+        <div class="guide-content">
+          <p data-i18n="guideIntervalsText">Today uses 1-minute candles; 5 days uses 15-minute candles; 1 month and 6 months use daily candles; 1 year uses weekly candles. Each new price updates the active candle; a new candle starts when its interval rolls over.</p>
+        </div>
+      </details>
+      <details class="guide-section">
+        <summary data-i18n="guideDataTitle">Live prices and simulations</summary>
+        <div class="guide-content">
+          <p data-i18n="guideDataText">Market quotes are requested about every 20 seconds and may be delayed. If live data is unavailable, the app uses simulated prices and candles, clearly marked as simulation. This is practice only, not real trading advice.</p>
+        </div>
+      </details>
+    </aside>
       <section class="card world-card" id="worldCard" aria-labelledby="worldHeading">
         <div class="world-header">
           <div><h2 id="worldHeading" data-i18n="worldTitle">Shared Money World</h2><p data-i18n="worldDescription">Explore together. Mine a money block to earn virtual cash; nearby players can join to finish it faster and split the reward.</p></div>
@@ -688,6 +737,64 @@
       }
     };
     for (const [language, messages] of Object.entries(moderationMessages)) Object.assign(localeMessages[language], messages);
+    const learningMessages = {
+      en: {
+        guideNav: "Guide", guideHeading: "Trading guide", guideIntro: "Learn how to read the chart and practice safely. Open a section to see its explanation.",
+        guideCandlesTitle: "Candlesticks: the basics", guideCandlesIntro: "Each candle summarizes how the price moved during one time interval.",
+        guideOpenLabel: "Open", guideOpenText: "The first price in that interval.",
+        guideCloseLabel: "Close", guideCloseText: "The last price in that interval.",
+        guideHighLabel: "High", guideHighText: "The highest price reached.",
+        guideLowLabel: "Low", guideLowText: "The lowest price reached.",
+        guideColorsTitle: "Candle body, wicks and colors", guideColorsText: "The thick body runs from open to close. Thin lines above and below are wicks showing the high and low. Green means the interval closed at or above its open; red means it closed below its open.",
+        guideIntervalsTitle: "Chart time intervals", guideIntervalsText: "Today uses 1-minute candles; 5 days uses 15-minute candles; 1 month and 6 months use daily candles; 1 year uses weekly candles. Each new price updates the active candle; a new candle starts when its interval rolls over.",
+        guideDataTitle: "Live prices and simulations", guideDataText: "Market quotes are requested about every 20 seconds and may be delayed. If live data is unavailable, the app uses simulated prices and candles, clearly marked as simulation. This is practice only, not real trading advice."
+      },
+      de: {
+        guideNav: "Lernen", guideHeading: "Trading-Lernhilfe", guideIntro: "Hier lernst du, den Kursverlauf zu lesen und sicher zu üben. Öffne einen Abschnitt für die Erklärung.",
+        guideCandlesTitle: "Candlesticks: Grundlagen", guideCandlesIntro: "Jede Kerze fasst zusammen, wie sich der Kurs innerhalb eines Zeitintervalls bewegt hat.",
+        guideOpenLabel: "Eröffnung", guideOpenText: "Der erste Kurs im Zeitintervall.",
+        guideCloseLabel: "Schluss", guideCloseText: "Der letzte Kurs im Zeitintervall.",
+        guideHighLabel: "Hoch", guideHighText: "Der höchste erreichte Kurs.",
+        guideLowLabel: "Tief", guideLowText: "Der niedrigste erreichte Kurs.",
+        guideColorsTitle: "Kerzenkörper, Dochte und Farben", guideColorsText: "Der breite Körper reicht vom Eröffnungs- bis zum Schlusskurs. Die dünnen Linien darüber und darunter heißen Dochte und zeigen Hoch und Tief. Grün bedeutet: Der Schlusskurs liegt mindestens auf der Eröffnung. Rot bedeutet: Er liegt darunter.",
+        guideIntervalsTitle: "Zeiträume im Diagramm", guideIntervalsText: "„Heute“ nutzt 1-Minuten-Kerzen, „5 Tage“ 15-Minuten-Kerzen, „1 Monat“ und „6 Monate“ Tageskerzen und „1 Jahr“ Wochenkerzen. Jeder neue Kurs aktualisiert die laufende Kerze; mit dem nächsten Zeitintervall beginnt eine neue.",
+        guideDataTitle: "Live-Kurse und Simulation", guideDataText: "Marktkurse werden ungefähr alle 20 Sekunden abgefragt und können verzögert sein. Sind keine Live-Daten verfügbar, verwendet die App simulierte Kurse und Kerzen, die als Simulation gekennzeichnet sind. Das ist nur zum Üben und keine Anlageberatung."
+      },
+      fr: {
+        guideNav: "Guide", guideHeading: "Guide de trading", guideIntro: "Apprenez à lire le graphique et à vous entraîner sans risque. Ouvrez une rubrique pour en savoir plus.",
+        guideCandlesTitle: "Chandeliers : notions de base", guideCandlesIntro: "Chaque chandelier résume l’évolution du cours pendant un intervalle de temps.",
+        guideOpenLabel: "Ouverture", guideOpenText: "Le premier cours de l’intervalle.",
+        guideCloseLabel: "Clôture", guideCloseText: "Le dernier cours de l’intervalle.",
+        guideHighLabel: "Plus haut", guideHighText: "Le cours le plus élevé atteint.",
+        guideLowLabel: "Plus bas", guideLowText: "Le cours le plus bas atteint.",
+        guideColorsTitle: "Corps, mèches et couleurs", guideColorsText: "Le corps épais va de l’ouverture à la clôture. Les lignes fines sont les mèches et indiquent les cours les plus haut et bas. Le vert indique une clôture au niveau ou au-dessus de l’ouverture ; le rouge, une clôture en dessous.",
+        guideIntervalsTitle: "Intervalles du graphique", guideIntervalsText: "« Aujourd’hui » utilise des chandeliers d’une minute ; « 5 jours », de 15 minutes ; « 1 mois » et « 6 mois », des chandeliers quotidiens ; « 1 an », des chandeliers hebdomadaires. Chaque nouveau cours actualise le chandelier en cours ; un nouveau commence à l’intervalle suivant.",
+        guideDataTitle: "Cours en direct et simulations", guideDataText: "Les cours sont demandés environ toutes les 20 secondes et peuvent être différés. Si les données en direct sont indisponibles, l’application utilise des cours et chandeliers simulés, indiqués comme simulation. Entraînement uniquement, pas un conseil financier."
+      },
+      es: {
+        guideNav: "Guía", guideHeading: "Guía de trading", guideIntro: "Aprende a leer el gráfico y a practicar sin riesgo. Abre una sección para ver su explicación.",
+        guideCandlesTitle: "Velas: conceptos básicos", guideCandlesIntro: "Cada vela resume cómo se movió el precio durante un intervalo de tiempo.",
+        guideOpenLabel: "Apertura", guideOpenText: "El primer precio del intervalo.",
+        guideCloseLabel: "Cierre", guideCloseText: "El último precio del intervalo.",
+        guideHighLabel: "Máximo", guideHighText: "El precio más alto alcanzado.",
+        guideLowLabel: "Mínimo", guideLowText: "El precio más bajo alcanzado.",
+        guideColorsTitle: "Cuerpo, mechas y colores", guideColorsText: "El cuerpo grueso va desde la apertura hasta el cierre. Las líneas finas son las mechas e indican el máximo y el mínimo. Verde significa que el cierre quedó igual o por encima de la apertura; rojo, que quedó por debajo.",
+        guideIntervalsTitle: "Intervalos del gráfico", guideIntervalsText: "«Hoy» usa velas de 1 minuto; «5 días», de 15 minutos; «1 mes» y «6 meses», diarias; «1 año», semanales. Cada precio nuevo actualiza la vela activa; al cambiar el intervalo comienza una nueva.",
+        guideDataTitle: "Precios en vivo y simulaciones", guideDataText: "Los precios se solicitan aproximadamente cada 20 segundos y pueden tener retraso. Si no hay datos en vivo, la aplicación usa precios y velas simulados, identificados como simulación. Es solo para practicar, no es asesoramiento financiero."
+      },
+      tr: {
+        guideNav: "Rehber", guideHeading: "İşlem rehberi", guideIntro: "Grafiği okumayı ve risksiz şekilde pratik yapmayı öğrenin. Açıklama için bir bölümü açın.",
+        guideCandlesTitle: "Mum grafik: temel bilgiler", guideCandlesIntro: "Her mum, fiyatın bir zaman aralığındaki hareketini özetler.",
+        guideOpenLabel: "Açılış", guideOpenText: "Aralıktaki ilk fiyat.",
+        guideCloseLabel: "Kapanış", guideCloseText: "Aralıktaki son fiyat.",
+        guideHighLabel: "En yüksek", guideHighText: "Ulaşılan en yüksek fiyat.",
+        guideLowLabel: "En düşük", guideLowText: "Ulaşılan en düşük fiyat.",
+        guideColorsTitle: "Mum gövdesi, fitiller ve renkler", guideColorsText: "Kalın gövde açılış ile kapanış arasını gösterir. İnce çizgiler fitildir ve en yüksek/en düşük fiyatı belirtir. Yeşil, kapanışın açılışa eşit veya daha yüksek; kırmızı ise daha düşük olduğunu gösterir.",
+        guideIntervalsTitle: "Grafik zaman aralıkları", guideIntervalsText: "“Bugün” 1 dakikalık, “5 gün” 15 dakikalık, “1 ay” ve “6 ay” günlük, “1 yıl” haftalık mumlar kullanır. Her yeni fiyat etkin mumu günceller; aralık değişince yeni mum başlar.",
+        guideDataTitle: "Canlı fiyatlar ve simülasyon", guideDataText: "Piyasa fiyatları yaklaşık 20 saniyede bir istenir ve gecikmeli olabilir. Canlı veri yoksa uygulama simülasyon olarak işaretlenen fiyat ve mumları kullanır. Yalnızca pratik içindir; yatırım tavsiyesi değildir."
+      }
+    };
+    for (const [language, messages] of Object.entries(learningMessages)) Object.assign(localeMessages[language], messages);
     let worldPosition = { x: 800, y: 450 };
     let worldPlayers = [];
     let worldBlocks = [];
@@ -2190,8 +2297,12 @@
       const panel = document.getElementById("accountCard");
       const backdrop = document.getElementById("sitePanelBackdrop");
       const panelToggle = document.getElementById("sitePanelToggle");
+      const learningPanel = document.getElementById("learningPanel");
+      const learningPanelToggle = document.getElementById("learningPanelToggle");
       document.getElementById("developerConsole").hidden = !developerConsoleOpen;
       if (developerConsoleOpen) {
+        learningPanel.hidden = true;
+        learningPanelToggle.setAttribute("aria-expanded", "false");
         if (!wasOpen) developerConsoleOpenedPanel = panel.hidden;
         if (developerConsoleOpenedPanel) {
           panel.hidden = false;
@@ -2553,20 +2664,37 @@
       });
       const sitePanel = document.getElementById("accountCard");
       const panelToggle = document.getElementById("sitePanelToggle");
+      const learningPanel = document.getElementById("learningPanel");
+      const learningPanelToggle = document.getElementById("learningPanelToggle");
       const closeSitePanel = () => {
+        const focusTarget = sitePanel.hidden ? learningPanelToggle : panelToggle;
         sitePanel.hidden = true;
+        learningPanel.hidden = true;
         document.getElementById("sitePanelBackdrop").hidden = true;
         panelToggle.setAttribute("aria-expanded", "false");
-        panelToggle.focus();
+        learningPanelToggle.setAttribute("aria-expanded", "false");
+        focusTarget.focus();
       };
       panelToggle.addEventListener("click", () => {
         const open = sitePanel.hidden;
+        learningPanel.hidden = true;
+        learningPanelToggle.setAttribute("aria-expanded", "false");
         sitePanel.hidden = !open;
         document.getElementById("sitePanelBackdrop").hidden = !open;
         panelToggle.setAttribute("aria-expanded", String(open));
         if (open) document.getElementById(cloudSession ? "sitePanelClose" : "accountUsername").focus();
       });
+      learningPanelToggle.addEventListener("click", () => {
+        const open = learningPanel.hidden;
+        sitePanel.hidden = true;
+        panelToggle.setAttribute("aria-expanded", "false");
+        learningPanel.hidden = !open;
+        document.getElementById("sitePanelBackdrop").hidden = !open;
+        learningPanelToggle.setAttribute("aria-expanded", String(open));
+        if (open) document.getElementById("learningPanelClose").focus();
+      });
       document.getElementById("sitePanelClose").addEventListener("click", closeSitePanel);
+      document.getElementById("learningPanelClose").addEventListener("click", closeSitePanel);
       document.getElementById("sitePanelBackdrop").addEventListener("click", closeSitePanel);
       document.addEventListener("keydown", event => {
         const isTyping = event.target instanceof HTMLElement
@@ -2576,7 +2704,7 @@
           event.preventDefault();
           setDeveloperConsoleOpen(true);
         }
-        if (event.key === "Escape" && !sitePanel.hidden) closeSitePanel();
+        if (event.key === "Escape" && (!sitePanel.hidden || !learningPanel.hidden)) closeSitePanel();
         if (event.key === "Escape" && developerConsoleOpen) setDeveloperConsoleOpen(false);
       });
       document.getElementById("developerConsoleButton").addEventListener("click", () => setDeveloperConsoleOpen(true));
