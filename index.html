@@ -2827,11 +2827,11 @@
     }
 
     const chartPeriods = {
-      "1d": { range: "1d", interval: "1m", label: "Intraday" },
-      "5d": { range: "5d", interval: "15m", label: "Letzte 5 Handelstage" },
-      "1mo": { range: "1mo", interval: "1d", label: "Letzter Monat" },
-      "6mo": { range: "6mo", interval: "1d", label: "Letzte 6 Monate" },
-      "1y": { range: "1y", interval: "1wk", label: "Letztes Jahr" }
+      "1d": { range: "1d", interval: "1m", candleSeconds: 60, maxCandles: 390, label: "Intraday" },
+      "5d": { range: "5d", interval: "15m", candleSeconds: 900, maxCandles: 130, label: "Letzte 5 Handelstage" },
+      "1mo": { range: "1mo", interval: "1d", candleSeconds: 86400, maxCandles: 31, label: "Letzter Monat" },
+      "6mo": { range: "6mo", interval: "1d", candleSeconds: 86400, maxCandles: 183, label: "Letzte 6 Monate" },
+      "1y": { range: "1y", interval: "1wk", candleSeconds: 604800, maxCandles: 53, label: "Letztes Jahr" }
     };
 
     function renderChartDetails() {
@@ -2938,6 +2938,26 @@
         price = Math.max(0.01, open);
       }
       return candles;
+    }
+
+    function updateSelectedChartCandle() {
+      if (document.getElementById("chartCard").hidden || !chartData.length || !Number.isFinite(selected.price)) return;
+      const { candleSeconds, maxCandles } = chartPeriods[chartRange];
+      const candleTime = Math.floor(Date.now() / 1000 / candleSeconds) * candleSeconds;
+      const price = selected.price / serverPriceMultiplier;
+      if (!Number.isFinite(price) || price <= 0) return;
+
+      const latest = chartData[chartData.length - 1];
+      const latestBucket = Math.floor(latest.time / candleSeconds) * candleSeconds;
+      if (candleTime <= latestBucket) {
+        latest.high = Math.max(latest.high, price);
+        latest.low = Math.min(latest.low, price);
+        latest.close = price;
+      } else {
+        chartData.push({ time: candleTime, open: price, high: price, low: price, close: price });
+        if (chartData.length > maxCandles) chartData = chartData.slice(-maxCandles);
+      }
+      renderChartDetails();
     }
 
     async function loadSelectedChart() {
@@ -3100,6 +3120,7 @@
           simulatedFeed = assets.some(asset => asset.dataMode === "simulation");
           const time = lastQuoteUpdate.toLocaleTimeString(intlLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" });
           setFeedStatus(`${simulatedFeed ? t("marketCombined") : missing.length ? t("marketPartial") : t("marketUpdated")} · ${time}`, simulatedFeed || missing.length > 0);
+          updateSelectedChartCandle();
         } else {
           feedFailures++;
           showSimulatedMarket();
@@ -3268,7 +3289,6 @@
     if (!isWorldOnly) {
       refreshLivePrices();
       setInterval(refreshLivePrices, 20000);
-      setInterval(loadSelectedChart, 20000);
     }
     setInterval(() => {
       if (document.visibilityState !== "visible" || !assets.some(asset => asset.dataMode === "simulation")) return;
@@ -3276,6 +3296,7 @@
         if (asset.dataMode === "simulation") advanceSimulatedPrice(asset);
       }
       simulatedFeed = assets.some(asset => asset.dataMode === "simulation");
+      if (selected.dataMode === "simulation") updateSelectedChartCandle();
       render();
     }, 1000);
     setInterval(() => {
