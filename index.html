@@ -197,6 +197,9 @@
     .developer-console-card { width: min(700px, 100%); max-height: min(720px, 90dvh); overflow: auto; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); }
     .developer-console-output { min-height: 170px; max-height: 360px; overflow: auto; margin: 14px 0; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #101612; color: var(--muted); font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; }
     .developer-console-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .developer-command-suggestions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+    .developer-command-suggestions button { border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; color: var(--muted); background: var(--panel-2); font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; cursor: pointer; }
+    .developer-command-suggestions button[aria-selected="true"], .developer-command-suggestions button:hover { border-color: var(--green); color: var(--green); }
     .developer-console-hint { color: var(--muted); font-size: 12px; line-height: 1.6; }
     .world-card { grid-column: 1 / -1 !important; padding: 20px; }
     .world-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
@@ -380,11 +383,12 @@
       <section class="developer-console" id="developerConsole" hidden role="dialog" aria-modal="true" aria-labelledby="developerConsoleHeading">
         <div class="developer-console-card">
           <div class="account-heading"><h2 id="developerConsoleHeading">Developer-Konsole</h2><button class="site-panel-close" id="developerConsoleClose" type="button">Schließen</button></div>
-          <p class="developer-console-hint">Commands: <code>/help</code>, <code>/stocks drop 10%</code>, <code>/stocks reset</code>, <code>/announcement TEXT</code>, <code>/announcement reset</code>, <code>/cash set|add USER AMOUNT</code>, <code>/role USER ROLE</code>, <code>/portfolio close|open USER</code>, <code>/account USER</code>, <code>/block spawn [AMOUNT]</code>, <code>/block finish ID</code>.</p>
+          <p class="developer-console-hint">Commands: <code>/help</code>, <code>/stocks drop 10%</code>, <code>/stocks reset</code>, <code>/announcement TEXT</code>, <code>/announcement reset</code>, <code>/cash set|add USER AMOUNT</code>, <code>/role USER ROLE</code>, <code>/portfolio close|open USER</code>, <code>/account USER</code>, <code>/block spawn [AMOUNT]</code>, <code>/block finish ID</code>. Press Tab to cycle suggestions; Arrow Up runs your last command again.</p>
           <div class="developer-console-output" id="developerConsoleOutput" role="log" aria-live="polite"></div>
           <form class="developer-console-form" id="developerConsoleForm">
             <input class="account-input" id="developerConsoleInput" autocomplete="off" maxlength="600" placeholder="/help" aria-label="Developer command" required>
             <button class="account-button primary" type="submit">Ausführen</button>
+            <div class="developer-command-suggestions" id="developerCommandSuggestions" role="listbox" aria-label="Command suggestions" hidden></div>
           </form>
         </div>
       </section>
@@ -716,6 +720,9 @@
     let serverAnnouncement = null;
     let developerConsoleOpen = false;
     let developerConsoleOpenedPanel = false;
+    let lastDeveloperCommand = "";
+    let developerCommandPending = false;
+    let developerSuggestionIndex = -1;
     let serverStateErrorLogged = false;
     let portfolioClosed = false;
     let portfolioUnavailable = false;
@@ -1180,7 +1187,7 @@
       return {
         id: Number(block.id),
         reward: worldMoney(Number(block.reward)),
-        message: "Timer completed. The server will settle the block on the next world sync; only players who contributed receive a share."
+        message: "Block completed and removed. Only players who contributed receive a share."
       };
     }
 
@@ -2081,6 +2088,76 @@
       output.scrollTop = output.scrollHeight;
     }
 
+    const developerCommandSuggestions = [
+      "/help",
+      "/stocks drop 10%",
+      "/stocks reset",
+      "/announcement ",
+      "/announcement reset",
+      "/cash set username 1m",
+      "/cash add username 1m",
+      "/role username user",
+      "/role username read_only",
+      "/role username admin",
+      "/role username developer",
+      "/portfolio close username",
+      "/portfolio open username",
+      "/account username",
+      "/block spawn",
+      "/block spawn 1m",
+      "/block finish 1"
+    ];
+
+    function updateDeveloperCommandSuggestions() {
+      const list = document.getElementById("developerCommandSuggestions");
+      const input = document.getElementById("developerConsoleInput");
+      if (!developerConsoleOpen) {
+        list.hidden = true;
+        return;
+      }
+      const query = input.value.trimStart().toLowerCase();
+      const matches = developerCommandSuggestions
+        .filter(command => !query || command.toLowerCase().startsWith(query))
+        .slice(0, 6);
+      developerSuggestionIndex = -1;
+      list.replaceChildren();
+      for (const [index, command] of matches.entries()) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.role = "option";
+        button.setAttribute("aria-selected", "false");
+        button.textContent = command;
+        button.addEventListener("mousedown", event => event.preventDefault());
+        button.addEventListener("click", () => {
+          input.value = command;
+          input.focus();
+          updateDeveloperCommandSuggestions();
+        });
+        list.append(button);
+      }
+      list.hidden = matches.length === 0;
+    }
+
+    async function executeDeveloperConsoleCommand(command, input) {
+      const normalizedCommand = command.trim();
+      if (!normalizedCommand || developerCommandPending) return;
+      developerCommandPending = true;
+      lastDeveloperCommand = normalizedCommand;
+      input.value = "";
+      writeConsoleLine(normalizedCommand);
+      updateDeveloperCommandSuggestions();
+      try {
+        await runDeveloperCommand(normalizedCommand);
+      } catch (error) {
+        console.error("Developer command failed.", error);
+        writeConsoleLine(`Error: ${error.message || "Command failed."}`);
+      } finally {
+        developerCommandPending = false;
+        input.focus();
+        updateDeveloperCommandSuggestions();
+      }
+    }
+
     function setDeveloperConsoleOpen(open) {
       const wasOpen = developerConsoleOpen;
       developerConsoleOpen = Boolean(open && cloudSession && cloudRole === "developer");
@@ -2095,12 +2172,17 @@
           backdrop.hidden = false;
           panelToggle.setAttribute("aria-expanded", "true");
         }
-        document.getElementById("developerConsoleInput").focus();
+        const input = document.getElementById("developerConsoleInput");
+        input.focus();
+        updateDeveloperCommandSuggestions();
       } else if (developerConsoleOpenedPanel) {
         panel.hidden = true;
         backdrop.hidden = true;
         panelToggle.setAttribute("aria-expanded", "false");
         developerConsoleOpenedPanel = false;
+        document.getElementById("developerCommandSuggestions").hidden = true;
+      } else {
+        document.getElementById("developerCommandSuggestions").hidden = true;
       }
     }
 
@@ -2129,7 +2211,7 @@
         if (action?.toLowerCase() === "finish") {
           if (!amountText || extra.length > 0) throw new Error("Syntax: /block finish <ID>");
           const block = await developerSkipWorldTimer(amountText);
-          writeConsoleLine(`Timer completed for block ${block.id} (${block.reward}). The server only pays players who contributed.`);
+          writeConsoleLine(`Block ${block.id} completed and removed (${block.reward}). Only contributing players are paid.`);
           return;
         }
         if (action?.toLowerCase() !== "spawn" || extra.length > 0) {
@@ -2450,20 +2532,26 @@
       document.getElementById("developerConsole").addEventListener("click", event => {
         if (event.target.id === "developerConsole") setDeveloperConsoleOpen(false);
       });
+      const developerInput = document.getElementById("developerConsoleInput");
+      developerInput.addEventListener("input", updateDeveloperCommandSuggestions);
+      developerInput.addEventListener("keydown", event => {
+        if (event.key === "Tab") {
+          const options = [...document.querySelectorAll("#developerCommandSuggestions button")];
+          if (!options.length) return;
+          event.preventDefault();
+          developerSuggestionIndex = (developerSuggestionIndex + 1) % options.length;
+          options.forEach((option, index) => option.setAttribute("aria-selected", String(index === developerSuggestionIndex)));
+          developerInput.value = options[developerSuggestionIndex].textContent;
+        } else if (event.key === "ArrowUp" && lastDeveloperCommand && !developerCommandPending) {
+          event.preventDefault();
+          void executeDeveloperConsoleCommand(lastDeveloperCommand, developerInput);
+        } else if (event.key === "Escape") {
+          document.getElementById("developerCommandSuggestions").hidden = true;
+        }
+      });
       document.getElementById("developerConsoleForm").addEventListener("submit", async event => {
         event.preventDefault();
-        const input = document.getElementById("developerConsoleInput");
-        const command = input.value.trim();
-        if (!command) return;
-        writeConsoleLine(command);
-        input.value = "";
-        try {
-          await runDeveloperCommand(command);
-        } catch (error) {
-          console.error("Developer-Befehl fehlgeschlagen.", error);
-          writeConsoleLine(`Fehler: ${error.message || "Befehl fehlgeschlagen."}`);
-        }
-        input.focus();
+        await executeDeveloperConsoleCommand(developerInput.value, developerInput);
       });
       document.getElementById("forgotPasswordButton").addEventListener("click", async () => {
         if (!cloudClient) return;
