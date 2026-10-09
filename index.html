@@ -465,7 +465,7 @@
           <div><div class="trade-price" id="tradePrice">—</div><div class="asset-sub" data-i18n="perShare">per share</div></div>
         </div>
         <label class="field-label" for="quantity" data-i18n="quantity">Quantity</label>
-        <div class="input-wrap"><input type="number" id="quantity" value="1" min="0.01" step="0.01" inputmode="decimal"><span class="input-suffix" data-i18n="shares">shares</span></div>
+        <div class="input-wrap"><input type="text" id="quantity" value="1" inputmode="decimal" placeholder="e.g. 1, 1k or 1.5m" aria-label="Share quantity (k, m, b, t supported)"><span class="input-suffix" data-i18n="shares">shares</span></div>
         <div class="estimated"><span data-i18n="estimatedAmount">Estimated amount</span><strong id="estimate">—</strong></div>
         <div class="trade-actions"><button class="buy" id="buyButton" type="button" data-i18n="buy">Buy</button><button class="sell" id="sellButton" type="button" data-i18n="sell">Sell</button></div>
         <button class="sell-all" id="sellAllButton" type="button" data-i18n="sellAll">Sell entire position</button>
@@ -2789,9 +2789,10 @@
       document.getElementById("tradeName").textContent = selected.name;
       document.getElementById("tradeTicker").textContent = `${selected.ticker} · ${selected.kind === "Aktie" ? t("stock") : "ETF"}`;
       document.getElementById("tradePrice").textContent = money(selected.price);
-      document.getElementById("estimate").textContent = money(hasPrice ? selected.price * quantity() : NaN);
-      document.getElementById("buyButton").disabled = !hasPrice || tradingDisabled;
-      document.getElementById("sellButton").disabled = !hasPrice || holding.quantity <= 0 || tradingDisabled;
+      const amount = quantity();
+      document.getElementById("estimate").textContent = money(hasPrice && amount ? selected.price * amount : NaN);
+      document.getElementById("buyButton").disabled = !hasPrice || !amount || tradingDisabled;
+      document.getElementById("sellButton").disabled = !hasPrice || !amount || amount > holding.quantity || holding.quantity <= 0 || tradingDisabled;
       document.getElementById("sellAllButton").disabled = !hasPrice || holding.quantity <= 0 || tradingDisabled;
       document.getElementById("sellAllButton").textContent = holding.quantity > 0
         ? t("sellAllShares", { quantity: holding.quantity.toLocaleString(intlLocale(), { maximumFractionDigits: 8 }) })
@@ -2805,15 +2806,15 @@
           : hasPrice
             ? t("noFeesText")
             : t("waitQuotes");
-      document.getElementById("chartEstimate").textContent = `${t("amount")}: ${money(hasPrice ? selected.price * quantity() : NaN)}`;
+      document.getElementById("chartEstimate").textContent = `${t("amount")}: ${money(hasPrice && amount ? selected.price * amount : NaN)}`;
       const chartBuyButton = document.getElementById("chartBuyButton");
-      chartBuyButton.disabled = !hasPrice || tradingDisabled;
-      chartBuyButton.textContent = `Kaufen · ${quantity().toLocaleString("de-DE", { maximumFractionDigits: 4 })} Stk.`;
+      chartBuyButton.disabled = !hasPrice || !amount || tradingDisabled;
+      chartBuyButton.textContent = `Kaufen · ${amount.toLocaleString("de-DE", { maximumFractionDigits: 4 })} Stk.`;
     }
 
     function quantity() {
-      const amount = Number(document.getElementById("quantity").value);
-      return Number.isFinite(amount) && amount > 0 ? amount : 0;
+      const amount = parseMoneyAmount(document.getElementById("quantity").value);
+      return amount !== null && amount > 0 ? amount : 0;
     }
 
     function render() {
